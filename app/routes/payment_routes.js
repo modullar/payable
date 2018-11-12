@@ -1,14 +1,23 @@
 // routes/payment_routes.js
 
 var ObjectId = require('mongodb').ObjectID;
+const { check, validationResult } = require('express-validator/check');
 
 module.exports = function(app, db) {
-  app.post('/payments', (req, res) => {
+  app.post('/payments', [check('value').isNumeric(),
+                         check('isImported').isBoolean()],
+  (req, res) => {
+    const value = req.body.value;
+    const isImported = req.body.isImported;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     const payment = { contractId: req.body.contractId,
                       description: req.body.description,
-                      value: parseFloat(req.body.value),
+                      value: value,
                       time: new Date(req.body.time),
-                      isImported: req.body.isImported,
+                      isImported: isImported,
                       createdAt: Date.now(),
                       updatedAt: Date.now(),
                       isDeleted: false,
@@ -58,14 +67,22 @@ module.exports = function(app, db) {
   });
 
 
-  app.put('/payments/:id', (req, res) => {
+  app.put('/payments/:id', [check('value').isNumeric(),
+                            check('isImported').isBoolean()],
+  (req, res) => {
+    const value = req.body.value;
+    const isImported = req.body.isImported;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     const id = req.params.id;
     const details = { '_id': ObjectId(id) };
     const payment = { contractId: req.body.contractId,
                       description: req.body.description,
-                      value: parseFloat(req.body.value),
+                      value: value,
                       time: new Date(req.body.time),
-                      isImported: req.body.isImported,
+                      isImported: isImported,
                       createdAt: Date.now(),
                       updatedAt: Date.now(),
                       isDeleted: false,
